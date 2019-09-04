@@ -1,7 +1,9 @@
 .idea
 *.sc
 *.iml
+*Main.scala
 project
 target
 input
 test
+doc
