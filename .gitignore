@@ -1,0 +1,7 @@
+.idea
+*.sc
+*.iml
+project
+target
+input
+test
