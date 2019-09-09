@@ -8,8 +8,8 @@ import scala.util._
 
 object Util {
 
-  val width: Double = 1800.0
-  val height: Double = 1000.0
+  val width: Double = 125.0
+  val height: Double = 35.0
 
   lazy val songLoc: Future[List[(Double, Double, Double)]] = Future {
     val songList: List[String] = Source.fromFile("song.txt")("UTF-8").getLines().toList
