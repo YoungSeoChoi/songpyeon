@@ -13,7 +13,7 @@ object SwarmMain {
 
     try {
       val admin = system.actorOf(SwarmAdmin.props(), "swarm-admin")
-      admin ! initialize(10)
+      admin ! initialize(Util.swarmSize)
       StdIn.readLine()
     } finally {
       system.terminate()

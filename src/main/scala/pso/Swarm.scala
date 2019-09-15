@@ -1,6 +1,6 @@
 package pso
 
-import akka.actor.{Actor, ActorLogging, Props}
+import akka.actor.{Actor, Props}
 import impure.impure
 import pso.SwarmAdmin.{swarmUpdate, swarmUpdateLocal}
 
@@ -22,9 +22,10 @@ object Swarm {
   final case class swarmInit()
   final case class normalUpdate()
   final case class globalUpdate(g: (Double, Double, Double))
+  final case class stop()
 }
 
-class Swarm extends Actor with ActorLogging {
+class Swarm extends Actor {
   import Swarm._
 
   // max position x, max position y, max value
@@ -34,17 +35,13 @@ class Swarm extends Actor with ActorLogging {
   private var curPos: (Double, Double) = _
   private var curVel: (Double, Double) = _
 
-  override def preStart(): Unit = log.info("\nSwarm start" )
-  override def postStop(): Unit = log.info("\nSwarm stop")
-
   @impure
   override def receive: Receive = {
     case swarmInit() =>
-      sender() ! swarmUpdateLocal(curPos, curVel, localMax)
+      sender ! swarmUpdateLocal(curPos, curVel, localMax)
 
     case normalUpdate() =>
-      if (Util.checkEnd(curPos)) context.stop(self)
-      log.info(s"\npos: $curPos, vel: $curVel")
+      Thread.sleep(Util.throughput)
       // position and velocity update
       val nextVel = Util.nextVelocity(curVel, curPos, (localMax._1, localMax._2), (globalMax._1, globalMax._2))
       curVel = nextVel
@@ -56,17 +53,16 @@ class Swarm extends Actor with ActorLogging {
         localMax = (curPos._1, curPos._2, curFit)
         if (localMax._3 > globalMax._3) {
           globalMax = localMax
-          sender() ! swarmUpdateLocal(curPos, curVel, localMax)
+          sender ! swarmUpdateLocal(curPos, curVel, localMax)
         } else {
-          sender() ! swarmUpdate(curPos, curVel)
+          sender ! swarmUpdate(curPos, curVel)
         }
       } else {
-        sender() ! swarmUpdate(curPos, curVel)
+        sender ! swarmUpdate(curPos, curVel)
       }
 
     case globalUpdate(g) =>
-      if (Util.checkEnd(curPos)) context.stop(self)
-      log.info(s"pos: $curPos, vel: $curVel")
+      Thread.sleep(Util.throughput)
       // global update
       if (g._3 > globalMax._3) globalMax = g
 
@@ -81,12 +77,12 @@ class Swarm extends Actor with ActorLogging {
         localMax = (curPos._1, curPos._2, curFit)
         if (localMax._3 > globalMax._3) {
           globalMax = localMax
-          sender() ! swarmUpdateLocal(curPos, curVel, localMax)
+          sender ! swarmUpdateLocal(curPos, curVel, localMax)
         } else {
-          sender() ! swarmUpdate(curPos, curVel)
+          sender ! swarmUpdate(curPos, curVel)
         }
       } else {
-        sender() ! swarmUpdate(curPos, curVel)
+        sender ! swarmUpdate(curPos, curVel)
       }
   }
 }

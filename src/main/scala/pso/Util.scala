@@ -8,10 +8,12 @@ import scala.util._
 
 object Util {
 
-  val width: Double = 125.0
-  val height: Double = 35.0
+  val width: Double = 130.0
+  val height: Double = 30.0
+  val swarmSize: Int = 10
+  val throughput: Long = 500
 
-  lazy val songLoc: Future[List[(Double, Double, Double)]] = Future {
+  val songLoc: Future[List[(Double, Double, Double)]] = Future {
     val songList: List[String] = Source.fromFile("song.txt")("UTF-8").getLines().toList
     songList.map(s => {
       val arr = s.split(" ")
@@ -19,7 +21,7 @@ object Util {
     })
   }
 
-  lazy val songBest: Future[(Double, Double, Double)] = songLoc.map(x => x.maxBy(_._3))
+  val songBest: Future[(Double, Double, Double)] = songLoc.map(x => x.maxBy(_._3))
 
   def eval(x: Double, y: Double): Double = {
     val sLoc = Await.result(songLoc, Duration.Inf)
@@ -47,8 +49,12 @@ object Util {
     ???
   }
 
-  def checkEnd(curPos: (Double, Double)) = {
+  def checkEnd(curPos: (Double, Double)): Boolean = {
     val best = Await.result(songBest, Duration.Inf)
-    curPos._1 == best._1 && curPos._2 == best._2
+    curPos._1.round == best._1.round && curPos._2.round == best._2.round
+  }
+
+  def checkInside(pos: (Double, Double)): Boolean = {
+    0 < pos._1 && pos._1 < Util.width && 0 < pos._2 && pos._2 < Util.height
   }
 }
